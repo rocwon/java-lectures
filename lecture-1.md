@@ -1,11 +1,6 @@
-# Lecture 1: 基础
-
-说明：
-
-- 假设您已经具有基本的计算机知识
-- 不作为就业培训材料或者面试指南
 
 
+#  Lecture 1: 基础
 
 Java源于Sun Microsystems公司的James Gosling博士于1991年发明的一个名叫Oak的编程语言，当时主要想用在消费电子产品（比如机顶盒之类）上，但是没成气候。到了1995年，互联网在美国开始风起云涌，Sun捕捉到这个机会，就将Oak改名叫Java，在SunWorld大会上，发布了Java 1.0，口号是：Write Once, Run Anywhere。这个事件标志着Java正式诞生，20多年过去了，Java和JVM演变成一个庞大的软件开发平台和生态系统，在企业应用和互联网领域大放异彩。
 
@@ -42,7 +37,7 @@ JavaSE采用数字来命名版本。早期用1.x表示，比如1.5（就是大�
 
 程序设计语言的类型，大致有两种思路：静态类型（强类型）和动态类型（弱类型）。所谓静态类型就是，任何变量，在编译期都必须明确地、显示地指定一个类型，在指定之后就不可更改了。C，C++, C#, Java包括现在流行的Rust都是静态类型的语言：
 
-```
+```java/rust
 int i = 1；
 float f = 2.0f;
 let age : u8 = 32;
@@ -50,7 +45,7 @@ let age : u8 = 32;
 
 不同的语言，定义的语法有差别，但核心是一样的，都必须指定类型（ int, float, u8 这样的东西）。与之相反的是，弱类型的动态语言，不需要显示指定变量的数据类型，在运行时，编译器、虚拟机会去推断变量到底应该是个什么类型，最为典型的就是JavaScript和Python这两种语言：
 
-```
+```javascript/python
 let age = 32
 var name = "John Denver";
 address = '北京市海淀区上地七街'
@@ -60,7 +55,7 @@ address = '北京市海淀区上地七街'
 
 我们也不一定要在静态或者动态类型的语言里分个优劣。风水是轮流转的，早些年的语言都是静态类型的，大家就觉得动态类型推断的很酷，所以就涌现了很多动态类型的语言，甚至静态语言也从语法层面可以模拟一下：
 
-```
+```java/c#
 //Java or C#
 var i = 32;
 ```
@@ -83,7 +78,7 @@ var i = 32;
 | 4    | long    | 长整型       | 8 bytes，绝大多数情况下，它的表示范围都够用了                |
 | 5    | float   | 单精度浮点数 | 4 bytes，遵循IEEE-754标准                                    |
 | 6    | double  | 双精度浮点数 | 8 bytes，IEEE-754标准,范围和精度都比float大                  |
-| 7    | boolean | 布尔型       | true \|false，表达一种二值状态，黑/白，是/否，有/无，开/关，死/活... |
+| 7    | boolean | 布尔型       | true or false，表达一种二值状态，黑/白，是/否，有/无，开/关，死/活... |
 | 8    | char    | 字符         | 可以表示UNICODE字符集中从'\u0000' - ''\uffff'之间的字符，范围相当于 unsigned short |
 
 我们发现，基本类型都跟数值有关系，这有两种可能：
@@ -112,7 +107,7 @@ class和interface的内容较多，我们将专门用一小节来讲述。type v
 
 2. 装箱以后，就可能出现null pointer的问题，使用时需要注意。比如下面的代码：
 
-   ```
+   ```java
    public int add(Integer arg0, Integer arg1){
    	Integer result = arg0 + arg1; //此处不考虑溢范围出问题
    	return result; //此处自动拆箱为基本类型int
@@ -136,7 +131,7 @@ class和interface的内容较多，我们将专门用一小节来讲述。type v
 
 数组（Array）是一种集合（Collection）类型，它是一个容器，能盛放指定数量的元素。所有的元素的数据类型必须相同，可以是基本类型，也可以是应用类型。从数值计算的角度，我们可以将数组理解为一个向量（Vector），向量的维度（Dimension）必须大于或等于 1，即可以是一维的，也可以是高维的。二维的数组，就是一个矩阵。在使用的时候，通过下标（或者叫索引，Index）来访问。在绝大多数程序设计语言里，下标约定俗成从0开始，即array[0]表示第一个元素（特例：Fortran语言里，默认从1开始）。如果您发现某人在生活中计数喜欢从0开始，他可能是一个程序员。
 
-```
+```java
 int[] numbers = new int[4]; //定义一个长度为4的、元素类型为int的数组
 for(int i = 0; i < numbers.length; i++){
 	numbers[i] = i;	//循环为数组每一个元素赋值
@@ -163,7 +158,7 @@ Java是一种严格的面向对象（Object Oriented，OO）语言，要求我�
 
 - 初始化基本类型
 
-  ```
+  ```java
   //直接将值付给变量即可
   int a = 1;
   float f = 1.0;
@@ -176,18 +171,18 @@ Java是一种严格的面向对象（Object Oriented，OO）语言，要求我�
 
 - 初始化引用类型
 
-  ```
+  ```java
   Object obj = new Object();
   User user = new User();
   int[] array = new int[s4];
   Map<Integer, String> map = new HashMap<>();
   ```
 
-  从上面的代码可见，引用类型的初始化，必须用new关键字，它会为对象在堆上分配内存空间。Java虚拟机有一个垃圾回收器(Garbige Collector, GC)，当对象不再使用的时候，内存空间被自动释放。在C语言中，则需要手动调用free函数释，C++需要使用delete语句，释放空间。内存泄漏(Memory Leak)也是一种令人困扰万分而且非常难以定位的BUG，跟null pointer一样臭名昭著。近年来流行的Rust语言，采用了一些近似严酷的方法来解决一个问题：既不需要垃圾回收器也不需要手工管理内存。
+  从上面的代码可见，引用类型的初始化，必须用new关键字，它会为对象在堆上分配内存空间。Java虚拟机有一个垃圾回收器(Garbige Collector, GC)，当对象不再被使用的时候，内存空间被自动释放。在C语言中，则需要手动调用free函数、C++需要使用delete语句，释放空间。内存泄漏(Memory Leak)也是一种令人困扰万分而且非常难以定位的BUG，跟null pointer一样臭名昭著。近年来流行的Rust语言，采用了一些近似严酷的方法来解决一个问题：既不需要垃圾回收器也不需要手工管理内存。
 
-  有一个使用特别频繁的引用类型，叫做String，它代表了内存中的一个以Unicode编码的字符序列，就是我们常常说的“字符串”。String的初始化，看起来有点不一样：
+  有一个使用特别频繁的引用类型，叫做String，它代表了内存中的一个以Unicode （UTF-16）编码的字符序列，就是我们常常说的“字符串”。String的初始化，看起来有点不一样：
 
-  ```
+  ```java
   //初始化String时，可以不用new关键字，直接把双引号包裹起来的字符串赋给变量即可
   String name = "John Denver";
   var mobile = "13989898989";
@@ -196,4 +191,504 @@ Java是一种严格的面向对象（Object Oriented，OO）语言，要求我�
   String university = new String("MIT");
   ```
 
+  String还有一些特别之处，以及围绕它，一些有意思的操作，我们在标准库那一讲再详细讨论。类型系统得讨论就到此为止，下面我们熟悉一下Java得基本语法，这样才能开始编程之旅。
+
+## 1.2 语法基础
+
+在自然语言中，语法（Syntax）是用来规范语言形式的，程序设计语言也是如此。我们写一篇文章，最基本的要求是不要有语法错误，编写一段程序亦然，也不能有语法错误，否则编译器不会同意。Java是一种类C（C-Liked）语言，学过C/C++的读者5分钟就能上手了，因为它们有一些共同的语法特征，比如语句都以分号（；）结尾，代码块用花括号（{}）包裹起来等等。程序设计语言的世界里，有很多种语法风格，比如Python就跟Java截然不同，也没必要去争出个优劣高低来，习惯了就好。
+
+下面我们就从几个方面来介绍Java的语法，如果已经有Java编程经验的读者，可以跳过。
+
+### 1.2.1 程序基本结构
+
+Java是一种不是很彻底的面向对象的程序设计语言（基本类型不是对象），但是在宏结构上，它又是完全面向对象的。也就是说，任何变量（属性）和函数（方法），不能像C/C++/JavaScript一样独立存在于源代码文件之中，它必须被封闭在以下几种结构之一：
+
+1. 类（class）
+2. 接口（interface）
+3. 枚举（enum）
+4. 注解（annotation）
+5. 记录（record）
+
+以上五种程序组织结构（都是引用类型，基本上，我们可以认为enum, annotation和record是一种特殊的class。因此，下文中用class泛指这五种类型），如果它的可见性是public的话，就必须存在于一个独立的物理文件中（*.java）。换言之，Java的代码组织结构是以文件为基本单位，每个文件代表了一个public的引用类型。我们不能把两个public class写在同一个.java文件里：
+
+```java
+//MyClass.java
+
+public interface File{
+	public int open();
+	public byte[] read(long position, long length);
+}
+
+public class BinaryFile implements File{
+	private int fid;
+	private String name;
+	
+	public int open(){
+		//Opens the file and returns the file descriptor
+	}
+	
+	public byte[] read(long position, long length){
+		//Read the given length from from the specified position in the file
+	}
+}
+```
+
+上面的代码是无法通过编译的，因为MyClass.java这个物理文件里，有两个public的引用类型的定义。这一点跟其它语言有所区别。C语言里，可以把多个struct定义在一个源文件中，C++也可以将多个class定义在一个源文件里，但是Java不允许。
+
+大多数时候，为了实现某个功能，需要定义（Define）或声明（Declare）一系列的引用类型，它们之间或者构成层次结构，或者相互配合。这些引用类型将会被集中放在一起，构成一个包（Package）。包是一个同时具有逻辑性质和物理性质的概念：
+
+- 逻辑层面，它将一组功能、语义、或者行为相似的引用类型组织在一起，在其它代码中可以通过import关键字引入使用；
+- 物理层面，一个包就是一个磁盘目录（Directory），您必须建一个真实存在的物理目录，JVM的Class Loader才能找到并加载它。
+
+包既然是一个目录，那么它就具有目录树一样的嵌套结构，上下层级之间通过点（.）来表示。最前面我们讲Java诞生的背景时提到过，Java的出现，与互联网大潮紧密相关。互联网上组织资源的方式是URL，那么Java中包的层次结构，约定成俗的方法，也建议采用URL来命名，只不过把顺序倒过来，比如，程序员张三所在的公司的官网的URL是：gouge.com，他们公司开发了一个名叫BetaGo的项目，包名结构应该像以下样子：
+
+```java
+package com.gouge.betago;				//项目名就是顶层的报名
+package com.gouge.betago.kernel;		 //betago的内核代码
+package com.gouge.betago.service;		 //betago的对外的服务接口
+package com.gouge.betago.service.restful; //Restful形式的接口
+```
+
+并不是只有最底层的包内才有.java文件。源文件可以存在于任何一层的包中，这要取决于您的设计逻辑。在Java的命名规则里，package name全部采用小写字母（Lower Case Letters），下划线和数字也是允许的，以能够表达准确的语义和逻辑为准，同时兼顾一下美观。
+
+我们再强调一下，Java源代码组织的一些最佳实践（Best practice）:
+
+1. 把同一个功能的代码，放在同一个源文件里。尽量不要把所有的代码都搞在一个源文件中，变成裹脚布一样的风格；
+
+2. 把同一个功能模块、或者逻辑上相似的源文件组织在同一个包中，比如java.net.http，所有的源文件，都是为了实现HTTP Client服务；
+
+3. 一个Java项目，通常的目录结构如下：
+
+   ```
+   -- Project Name						 //项目名，最顶层的目录
+      -- Source Files Folder（src）		 //源代码目录，所有的源代码都放在这下面
+         -- Package					 //定义包的层级目录结构
+            -- *.java			 		 //包下面放置源代码文件
+      -- Binary Folder（bin）			//编译输出的结果
+      -- Configuration Folder		 	  //存放配置文件的目录
+   ```
+
+   如果您使用Eclipse, IDEA,之类的IDE，在创建项目时，它会创建一个与上面类似的目录结构（不同项目类型有所不同，比如web项目，就会有一个WEB-INF的目录，以满足Servlet规范要求）；如果用VS CODE、VIM之类的工具时，就需要手工创建项目结构。
+
+请注意：如果我们不声明任何package，会怎么样呢？编译器会默认您有一个package，就位于当前的源代码目录下。聪明的编译器知道按这些规则，去磁盘上搜寻源文件并编译成字节码。运行时，JVM的类加载器（Class Loader）也知道从什么地方去加载哪些字节码文件(.class)，这个内容在讲述JVM原理时详细讨论。
+
+### 1.2.2 声明和定义
+
+注意：这一节的内容，为了简单易懂，笔者尽量采用通俗化的语言描述。事实上，还有很学术化、形式化的表述方式，有兴趣的读者可以阅读Oracle官方网站上的 ”The Java Language Specification“的第二章”[Grammar](https://docs.oracle.com/javase/specs/jls/se17/html/jls-2.html)“。
+
+声明（Declare）和定义（Define）是两种不同的行为。在Java中，区别并不是很明显，而有些语言（比如C/C++），声明和定义是截然分开的。按照约定的方式编写Java代码，甚至您意识不到是在Declare还是在Define。不过，从概念上还是应该搞清楚它们，专业和业余的区别，往往在于细节。
+
+```java
+public interface UserService{
+	public boolean createUserAccount(User user);
+	public List<User> findUserAccounts(int department);
+}
+```
+
+上面的接口UserService中包含了两个方法的**声明**。换言之，这两个方法只给出了形式上的描述（可见性、返回值类型、方法名、参数类型），并没有实质，即没有给出方法具体的实现。又比如以下代码：
+
+```java
+String userName;
+List<User> users;
+UserService userService;
+```
+
+上面的三行代码有个共同特征：给出了变量名字和类型，但没有初始化。我们把这种情况叫作变量声明，就是只有形式没有实质。
+
+以上两个例子，都提到了“实质”这个词。这个实质，就是声明和定义的分野，它有两个含义：
+
+1. 分配了内存空间；
+2. 实现了具体行为。
+
+因此，上面的两段代码，都是声明。编译器只把它当作一个符号，这个符号如果是个变量，则不指向任何一块合法的内存空间；如果是个方法，则不具有任何行为。
+
+我们再看以下有“实质”的代码：
+
+```java
+public class UserServiceImpl implements UserService{
+	public boolean createUserAccount(User user){
+		if(user == null) return false;
+		return DatabaseUtil.insert(user);
+	}
+	public List<User> findUserAccounts(int department){
+		if(department == 0) return List.of();
+		var result = new ArrayList<User>();
+		//Get user accounts from database
+		return result;
+	}	
+}
+```
+
+这段代码定义了一个名为UserServiceImpl的类，它把interface UserService中声明的两个方法实现了，不再是一个空壳了，已经拥有了具体的行为。下面的代码则演示了分配内存空间：
+
+```java
+int a;	//没有显示地初始化，但编译器会给出缺省值
+double d = 10d;
+String userName = "John Denver";
+List<User> users = new ArrayList<>(128);
+UserService userService = new UserServiceImpl();
+```
+
+以上五行代码，每一行，都包含了变量类型、名字和初始值，让变量名字这个符号与栈或者堆上的一块内存空间联系起来了。需要注意的是：这些代码具有双重行为：先声明了符号，然后再赋予符合以实质意义。所以我们说：定义包含了声明，而声明不包含定义。
+
+自Java 8开始，支持在接口中为方法提供缺省实现。这个新特性就模糊了声明和定义的分野，只能这么说：有些声明中也包含了定义。
+
+在Java中，变量、函数和用户定义的引用类型，都必须先定义再使用。变量定义的一般形式为：
+
+**修饰符 类型 名称 = 初始值**
+
+```java
+private int count = 10;
+public String bandName = "The brothers four";
+```
+
+我们说Java是一种类C语言，变量定义的语法和C/C++/C#是一样的。有些语言则稍有不同，变量名和类型名的顺序是相反的，比如：
+
+```rust
+//Rust
+let v: Vec<i32> = Vec::new();
+```
+
+上面的Rust代码声明了一个变量并进行了初始化，它是一个存放4字节整数的向量容器。事实上，各种风格之间没有什么优劣之分，只是语言设计者的偏好，以及程序员的习惯。
+
+在Java中，函数/方法不能独立存在，它被包含在一种引用类型的内部。其的定义遵循以下模式：
+
+**修饰符 返回值类型 方法名(参数列表){ }**
+
+```java
+public long subtract(int i, int j){
+	return i + j;
+}
+
+//没有返回值类型的函数
+public void echo(String name){
+	System.out.println("Your name is " + name);
+}
+```
+
+引用类型是一种符合类型，或者说是一种类型容器，它里面包含了若干成员。这些成员可以是基本类型、也可以是别的引用类型，甚至是自己。 其定义的一般形式为：
+
+**修饰符 引用类型 名称{ 成员 }**
+
+```java
+//定义一个类
+public class Node{
+	private int id;
+	private String name;
+	private Node parent;
+	
+	public int getId(){
+		return this.id;
+	}
+}
+
+//定义一个枚举类型
+public enum Color{
+	RED(0xff0000),
+	GREEN(0x00ff00),
+	BLUE(0x0000ff);
+
+	private int code;
+	
+	Color(int hexCode){
+		this.code = hexCode
+	}
+	
+	public int getCode(){
+		return this.code;
+	}	
+}
+
+//声明一个接口
+public interface Cache{
+    public boolean set(String key, String value);
+    public String get(String key);
+}
+```
+
+Java 8（通过JSR 330）引入了lambda表达式，使得Java支持一些函数式编程的特性，此处先不展开讨论。
+
+上面关于变量、方法、引用类型定义的一般形式中，反复出现了**修饰符**（Modifier）这个名词。修饰符是一类关键字（Keyword），用以表示被修饰对象具备某一种特性。修饰符可以是多个，比如定义一个常量：
+
+```
+public static final int POOL_SIZE = 1024;
+```
+
+我们将修饰符分成几类，先介绍最常用的一类，关于对象可见性的修饰符：
+
+- public
+
+  凡是被public所修饰的对象，是能够被其它对象通过一定的方式访问到的。
+
+- private
+
+  私有的意味着，它不能被外部访问，可见性局限于class的内部。
+
+- protected
+
+  如果一个东西，它的可见性是”被保护的“，它的可见性介于public和private之间，在内部、同一个package下以及继承体系内，可以被访问到。C++中，被称之为friend，友元。
+
+  ```java
+  //这个类，只能被com.gugou.core这个包下的其它类访问到
+  package com.gugou.core;
+  protected class User{
+  	//......
+  }
+  ```
+
+  ```
+  public class Person{
+  	protected double salary;
+  }
   
+  public class Man extends Person{
+  	public double howMuch(){
+  		return this.salary;
+  	}
+  }
+  
+  //子类Man能够访问父类中定义的protected属性，而外部则无法访问。
+  ```
+
+  除了以上三种之外，还有一种默认的可见范围。如果省略掉可见性关键字，默认的可见范围是class的内部以及同一个package下。上文在讨论程序基本结构时讲过，一个源代码文件中，只能有一个public修饰的class。这意味着，源文件里有非public修饰的class也是合法的：
+
+  ```
+  //Person.java
+  
+  public class Person{
+  	private Name name;
+  }
+  //类Name的可见性，就是default
+  class Name{
+  	private String firstName;
+  	private String lastName;
+  	
+  	//......
+  }
+  ```
+
+  Java提供了一种机制叫作反射（Reflection），哪怕您声明成了private，也能够通过反射的途径访问到它，只不过麻烦一些。那么为什么还要多此一举地搞出可见性这个概念来呢？我们可以将它理解为一个软件工程的约束，而不是一个单纯的安全性解决方案。作为开发者，应该思考什么东西需要在什么范围内公开，才能营造一种更好的秩序和规范。
+
+第二类关键包含了两个：abstract（抽象）和static（静态）。把它们放在一起讨论，有一点强扭的意思，但也有共通之处，都与实例化（Instance）相关：
+
+- abstract决定了一个类是否能够被实例化
+
+  ```java
+  public abstract class SecurityManager{
+  	public boolean isAllowed(int userId);
+  	public boolean checkSesssion(String session);
+  }
+  ```
+
+  用abstract修饰的class，是不能被实例化的，比如以下代码，就无法通过编译：
+
+  ```java
+  SecurityManager manager = new SecurityManager();
+  ```
+
+  必须要有一个子类（subclass），实现这个抽象类的方法，才能实例化子类：
+
+  ```
+  public class MySecurityManager extends SecurityManager{
+  	public boolean isAllowed(int userId){
+  		return userId > 0;
+  	}
+  	
+  	public boolean checkSession(String session){
+  		return session != null && session.trim().length > 0;
+  	}
+  }
+  
+  //下面这一行代码就合法了
+  var manager = new MySecurityManager(); 
+  ```
+
+  所以某种程度上，抽象类就充当了接口的作用。语言的设计者，为什么要高出两个类似的东西来呢？请看以下代码：
+
+  ```java
+  public abstract class SecurityManager{
+  	public boolean isAllowed(int userId){
+  		return userId > 0;
+  	}
+  	public abstract boolean checkSesssion(String session);
+  }
+  
+  public class MyScurityManager extends SecurityManager{
+      @Override
+      public boolean checkSession(String session){
+  		return session != null && session.trim().length > 0;
+  	}
+  }
+  
+  var manager = new MySecurityManager(); 
+  //调用了super class的缺省实现
+  var allowed = manager.isAllowed(3);
+  //调用了子类自己的实现
+  var blocked = !manager.checkSession(null);
+  ```
+
+  抽象类中的方法，可以有具体的实现而不仅仅是声明，它的子类只需要覆写(override)被标记为abstract的方法即可。super class和sub class之间用的是extends这个关键字，表达的是继承关系。
+
+  而接口和类之间的关系是实现（implement）。在接口中只能声明方法，有实现类来完成具体要做的什么事情。但是，自Java 8开始，也允许接口可以提供方法的缺省实现了：
+
+  ```java
+  public interface SecurityManager{
+  	public default boolean isAllowed(int userId){
+  		return userId > 0;
+  	}
+  	public boolean checkSesssion(String session);
+  }
+  ```
+
+   所以，这二者之间可能仅仅是语义上的区别了，或者特定场合、特殊用途上必须用某一种方式（比如，如果要使用Java的动态代理功能，则需要用interface）。
+
+- static决定了一个成员是否需要被实例化才能访问。
+
+  先看一段代码：
+
+  ```java
+  long time = System.currentTimeMillis();
+  int maxValue = Integer.MAX_VALUE;
+  List<Object> array = List.of();
+  ```
+
+  这三行代码有一个共同点：直接用ClassName.xxx，而不是先new一个Object,再访问object.xxx。因为xxx在class里面，用static关键字修饰了，所以能够直接通过类名访问，而不需要实例化。下面是JDK中List.of方法的源代码：
+
+  ```java
+  //java.util.List 
+  static <E> List<E> of() {
+   	return ImmutableCollections.emptyList();
+   }
+  ```
+
+  同样，JDK中Integer.MAX_VALUE被定义成一个常量（Constant）：
+
+  ```java
+  public static final int   MAX_VALUE = 0x7fffffff;
+  ```
+
+  简而言之，凡是被static所修饰的成员，不需要实例化就能访问。如果该成员是一个变量，当ClassLoader第一次加载的时候，就被初始化了，它的值只有一份，不会被其它的实例化对象所影响。利用这个特征，我们可以用static来实现一个全局缓存，让一些值在整个应用的生命周期内，都能够被访问到，而且具有唯一性、稳定性：
+
+  ```java
+  //缓存所有的登录用户
+  public class Cache{
+  	public static final Map<Integer, String> ONLINE_USERS = new HashMap<>(512);
+  }
+  
+  public class UserManager{
+  	//用户登录时，把它信息存起来
+  	public boolean login(int user, String name){
+  		if(user == 0 || name == null) return false;
+  		Cache.ONLINE_USERS.put(user, name);
+  		return true;
+  	}
+  	
+  	//需要用的时候，从缓存中查找它即可
+  	public boolean isUserOnline(int id){
+  		return Cache.ONLINE_USERS.containsKey(id);
+  	}
+  }
+  ```
+
+  既然static具有这么多方便的特性，那我们把所有的属性和方法都用static修饰就好了嘛？理论上也不是不行，但是要考虑到一些问题：
+
+  1. 面向对象编程的意义何在呢？这其实完全退化成过程式编程了；
+  2. 占用不必要的存储空间，有些东西，用一次就完了，并不需要它常驻内存；
+  3. 作为一个程序员，编程需要克制，否则再好的特性也会成为陷阱甚至地狱。
+
+  static还可以被用来修饰一段代码。这样的代码块只在类加载时执行一次，可以用来作某些static修饰的属性的初始化，比如上面的Cache，可以这样实现：
+
+  ```
+  public class Cache{
+  	private static Map<Integer, String> onlineUsers = null;
+  	
+  	static{
+  		onlineUsers = new HashMap<>(512);
+  	}
+      
+      public static void cacheUser(int id, String name){
+          if(id == 0 || name == null) return;
+      	onlineUsers.put(id, name);
+      }
+      
+      public static String getUser(int id){
+          return onlineUsers.get(id);
+      }
+  }
+  ```
+
+第三类修饰符，用来描述class的可继承性，包括final和sealed（Java 17）。final和sealed的意思差不多，但作用又不完全一样：
+
+- final
+
+  如果一个类用final修饰，任何情况下，都不能被继承了，最典型的例子就是标准库中的String类：
+
+  ```java
+  public final class String
+      implements java.io.Serializable, Comparable<String>, CharSequence {
+  	//......
+  }
+  ```
+
+  假如我觉得标准库的String某些地方让我不爽，想改善一下，于是就这样：
+
+  ```java
+  public class MyString extends String{
+  	//......
+  }
+  ```
+
+  上面的方法是无法通过编译的。所以如果您认为某个类的行为是自洽的、自封的，不需要被任何人改写，就用final修饰它好了。
+
+  如果一个变量用final修饰，就是readonly的意思，其值不可被改变。final通常和static结合，用来定义常量，这样的例子数不胜数，一个典型的用途就是，避免代码里频繁出现所谓的魔鬼数字（Magic Number），使用字面常量代替它：
+
+  ```java
+  public static final int TCP_PORT = 3721;
+  public static final int PAGE_SIZE = 8192;
+  public static final int MAX_CONNECTIONS = 16;
+  ```
+
+- sealed
+
+  用sealed修饰的类叫做密封类，不能被继承（C#中也有seal这个关键字，一样的意思）。final太严格了，真的是密不透风，但seal在密封的时候又使用permits关键字给开了个口子，允许有例外，比如：
+
+  ```
+  //Ball.java
+  public sealed class Ball permits Football{
+  	public void play(String player){
+  		System.out.println(player + "is playing the ball");
+  	}
+  }
+  
+  //FootBall.java
+  public class Football extends Ball{
+  	@Override
+  	public void play(String player){
+  		System.out.println(player + "is playing football.");
+  	}
+  }
+  
+  //VolleyBall.java
+  public class Vollyball extends Ball{
+  	@Override
+  	public void play(String player){
+  		System.out.println(player + "is playing volleyball.");
+  	}
+  }
+  ```
+
+  class Ball是一个密封类，它只允许名字叫Football的类可以继承它，其它则是不允许的，所以Volleyball就无法通过编译。请注意，permits关键字只能出现在extends, implements之后。如果您还没切换到Java 17，就用不了sealed这个feature了。
+
+### 1.2.3 流程控制
+
+我们反复说，程序设计语言是用来描述现实世界的，它一定要有足够的表达能力。现实世界充满了无数的流程性的事务，比如老师说：单词听写没有全对的同学，放学回家后，把写错了的单词抄写50遍。这句话就涉及到了条件判断（是否听写全对）和循环（重复抄写50遍）。如果用Java代码来表达，类似下面这样：
+
+```java
+if(hasError){
+	for(int i = 0; i < 50; i++){
+		writeTheErrorWords();
+	}
+}
+```
+
+最简单的流程就是顺序结构，一条一条的语句，按先后顺序执行。从宏观层面看，在不涉及异步（Asynchronous）和并行（Parallel）的情况下，代码就是这样被执行的，这是冯诺依曼体系结构的特点。微观结构上，会出现分支和循环两种流程。
