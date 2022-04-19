@@ -1054,7 +1054,7 @@ public static final int POOL_SIZE = 1024;
        public boolean equals(Object obj){
            if(obj == null) return false;
            if(!(obj instanceof User)) return false;
-           return this.getId() == obj.getId();
+           return this.getId() == ((User)obj).getId();
        }
    }
    ```
@@ -1071,6 +1071,31 @@ public static final int POOL_SIZE = 1024;
    ```
 
    它将包装在引用类型中的基本类型的数值取出来，直接比较大小，跟基本型比较的行为保持一致。Java要求（至少是强烈建议）当覆写equals的时候，也要override另一个方法hashCode，不违背“相等的对象的hash code也必须相等”这个约定。
+
+   假如，我们非要把一个引用类型的两个对象进行比较不可，怎么才能做到呢？Java提供了一种机制，如果该类实现了Comparable接口，就可以进行比较。Comparable接口只有一个方法，compareTo，它返回一个数字，正数表示大于，负数表示小于，0表示相等：
+
+   ```java
+   public class Person implements Comparble{
+   	private int age;
+       
+       public Person(int age){
+           this.age = age;
+       }
+       
+       @Override
+   	public int compareTo(Object o) {
+   		var obj = (Person)o;
+           if(getAge() == obj.getAge()) return 0;
+            return getAge() > obj.getAge() ? 1 : -1;.
+      }
+   }
+   
+   Person mike = new Person(21);
+   Person tony = new Person(48);
+   
+   //此处返回-1，因为mike年纪比tony小
+   var result = mike.compareTo(tony);
+   ```
 
 5. 运算符重载
 
@@ -1100,7 +1125,7 @@ public static final int POOL_SIZE = 1024;
    }
    ```
 
-   当然，这可以有另一种理解：当Integer型的变量i和j，出现在比较操作符的左右时，瞬间完成了一次Unboxing操作，退化成两个int型的数值了，可以直接比较。
+   当然，这可以有另一种理解：当Integer型的变量i和j，出现在比较操作符的左右时，瞬间进行了一次Unboxing操作，退化成两个int型的数值了，可以直接比较。
 
 ### 1.2.5 流程控制
 
@@ -1276,7 +1301,7 @@ if(hasError){
      }
      ```
 
-  3. 无论什么情况，先做一次再看条件是否继续做，就用do-while语句来实现。比如一帮法外狂徒决定：今天先去抢一次银行，如果没被警察逮住的话，明天继续抢，直到被抓住为止：
+  3. 无论什么情况，先做一次再看条件是否继续做，就用do-while语句来实现。比如一帮法外狂徒决定今天去抢一间银行，如果没被警察逮住的话，明天继续抢另一间，直到被抓住为止：
 
      ```java
      boolean caught = false;
@@ -1286,7 +1311,7 @@ if(hasError){
      }while(!caught)
      ```
 
-  4. 无限循环，直到系统shutdown，或者因为意外而退出。可以用for或者while来实现：
+  4. 无限循环，直到系统shutdown，或者因为意外而退出。它常常用在一些服务器端的Daemon程序上，比如监听网络连接，等待用户输入，或者某些事件循环（Event-Loop），可以用for或者while来实现：
 
      ```java
      for(;;){
@@ -1344,9 +1369,31 @@ if(hasError){
   }
   ```
 
-  
+  循环结构可以让代码变得逻辑更加清晰，但CPU的感受有一点不同，频繁地陷入循环，效率是要打折扣的。所以现代编译器通常会对循环进行优化，也就是把循环展开（Loop Unrolling），代码体积虽然更大了，却由此获得更高的执行效率。当然展开的过程也可以由程序员自己sh收工展开，尤其是对那些往复次数较小的循环。
 
 - 异步（Asynchronous）
 
+  前面讨论的几种流程，绕圈圈也罢，跳来跳去也罢，代码都是同步(Synchronous)执行的。假设遇到一个异常复杂耗时的函数，整个系统就被阻塞（Block）了，系统吞吐量和用户体验都不好。因此对有些耗时的操作，并且后续的操作并不依赖于它的返回结果，可以选择异步方式处理，这种编程模式称之为并发（Concurrent）编程。代码一旦采用异步之后，执行顺序就变得不可控了，会带来诸如线程安全之类的问题。并发是一个大主题，后面专门用一讲来讨论。
+
 - 并行（Parallel）
+
+  并行就是把一件事情，切分成若干性质相同又互不相干的几个部分，让每个部分，在不同的计算机上，或者在同一台计算机的不同CPU核心上分别被处理。举个例子：让一个小朋友数500克大米有多少粒，他可能崩溃掉。如果把500克大米分成30份，让班上每个小朋友数一份，然后把结果加起来，可能个把小时就完成了。
+
+  并行编程跟传统编程的区别较大，是计算机科学中一个专门的研究领域，这个讲义不打算讨论它。读者只需要明白其基本思想，以及它和并发编程的区别。
+
+### 1.2.6 代码风格
+
+有句老生常谈的编程箴言：代码是写给人看的。言下之意是要写得简洁易懂，对人类很友好。笔者认为好的代码还应该对机器友好一些，也就是说，既要兼顾简洁易懂，又要兼顾执行效率。有时候这两者是冲突的，为了效率必然会用一些“奇技淫巧”。但如果全部程序都充满了奇技淫巧比如放弃高级语言，全用汇编来写效率更好一些，就没必要了。
+
+每一种语言、或者同一种语言在不同的平台下，有一些独特的编程风格的约定，包括代码结构、命名、注释等。有兴趣的读者可以参考著名的[Google Java编程规范](https://google.github.io/styleguide/javaguide.html)。
+
+一个好的集成开发环境（IDE，比如Eclipse），能协助程序员写出风格更加规范的代码。所以我们一定要使用一个趁手的IDE，这是非常有必要的，不要听一些故老的江湖传闻，厉害的程序员有记事本一类的外行话，也不要浪费精力争论哪个IDE才是宇宙最好的。
+
+有一件事，还是得强调一下：程序员要多开动脑筋，去给类，变量，方法起个好名字。命名的过程，其实是软件设计的过程。一个适宜的名称代表了对需求的正确理解、对功能的合理封装、对逻辑的准确抽象，而且还可以代替文档。
+
+David Karlton在他的一篇[Blog](https://www.karlton.org/2017/12/naming-things-hard/)里，回忆他的父亲（Phil Karlton）在Netscap工作时曾说过一句话：
+
+*There are only two hard things in Computer Science: cache invalidation and naming things.*
+
+所以，在命名上多花一点心思，是有价值的。
 
