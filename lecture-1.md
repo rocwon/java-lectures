@@ -1024,7 +1024,53 @@ public static final int POOL_SIZE = 1024;
 
    请注意，组合运算符中间不能有空白字符，必须紧紧靠在一起，它的作用就是让代码看起来更简洁一些，如此而已。
 
-   
+   比较运算符都是双目运算符，用来比较运算符左右的两个对象的等价情况：
+
+   | #    | 运算符 | 含义                     |
+   | ---- | ------ | ------------------------ |
+   | 1    | >      | 判断左边是否大于右边     |
+   | 2    | <      | 判断左边是否小于右边     |
+   | 3    | ==     | 判断左边是否等于右边     |
+   | 4    | !=     | 判断左边和右边是否不相等 |
+   | 5    | >=     | 判断左边是否大于等于右边 |
+   | 6    | <=     | 判断左右是否小于等于右边 |
+
+   比较运算符通常用于if-else、while等需要条件判断的语句中。只有数值类型的数据才能进行大小比较，基本类型都能用等号进行判等操作，单引用类型就稍微有些不同了，一般不使用等号去判断，而是用一个专门的方法：equals。我们说，两个引用类型相等，不是指字面量的相等，而是这两个类型所指向的是同一块内存空间，它们的地址相等。这是最基本的比较方法，参见Object类的equals方法的实现：
+
+   ```java
+   public boolean equals(Object obj) {
+   	return (this == obj);
+   }
+   ```
+
+   也就是说，如果您定义了一个class，没有覆写继承自Object的equals方法，那么缺省的行为是比较两个对象的内存地址。但是Java也允许您通过覆写equals方法改变比较规则，比如，两个用户的ID相同，我们就认为是同一个人：
+
+   ```java
+   public class User{
+   	private int id;
+       private String name;
+       
+       @Override
+       public boolean equals(Object obj){
+           if(obj == null) return false;
+           if(!(obj instanceof User)) return false;
+           return this.getId() == obj.getId();
+       }
+   }
+   ```
+
+   Java标准库中，也有很多覆写equals改变判等规则的例子，最典型的就是基本类型对应的引用类型。下面是Integer类的equals方法：
+
+   ```java
+   public boolean equals(Object obj) {
+   	if (obj instanceof Integer) {
+       	return value == ((Integer)obj).intValue();
+        }
+        return false;
+   }
+   ```
+
+   它将包装在引用类型中的基本类型的数值取出来，直接比较大小，跟基本型比较的行为保持一致。Java要求（至少是强烈建议）当覆写equals的时候，也要override另一个方法hashCode，不违背“相等的对象的hash code也必须相等”这个约定。
 
 5. 运算符重载
 
@@ -1044,6 +1090,17 @@ public static final int POOL_SIZE = 1024;
    String name = new StringBuilder("Jhon ").append("Denver").toString();
    ```
 
+   同样地，两个数值类型的包装类，也可以用关系运算符进行比较。这是运算符重载的另一个例子：
+
+   ```java
+   Integer i = 100;
+   Integer j = 110;
+   if(i > j){
+       System.out.println("That's impossible!");
+   }
+   ```
+
+   当然，这可以有另一种理解：当Integer型的变量i和j，出现在比较操作符的左右时，瞬间完成了一次Unboxing操作，退化成两个int型的数值了，可以直接比较。
 
 ### 1.2.5 流程控制
 
@@ -1195,6 +1252,99 @@ if(hasError){
     从代码风格的角度，提倡将一组常量用一个枚举类型替代。switch-case支持枚举类型，为更好的编程实践提供了便利。
 
 - 循环 （Loop）
+
+  反复做同一件事情叫作循环。Java提供了for, while, do-while以及forEach四种方式实现循环，它们在语义和应用场景方面有些差别：
+
+  1. 预先知道要做多少次，就用for语句来实现。例如把1到100的数字相加求和：
+
+     ```java
+     int result = 0;
+     for(int i = 1; i <= 100; i++){
+     		result += i;
+     }
+     ```
+
+  2. 不知道要做多少次，什么时候退出循环靠外部条件，就用while语句来实现。比如当一个随机数模3余2时退出：
+
+     ```java
+     boolean condition = true;
+     while(condition){
+     	var random = new Random();	
+     	if(random.nextInt() % 3 == 2){
+     		condition = false;
+     	}
+     }
+     ```
+
+  3. 无论什么情况，先做一次再看条件是否继续做，就用do-while语句来实现。比如一帮法外狂徒决定：今天先去抢一次银行，如果没被警察逮住的话，明天继续抢，直到被抓住为止：
+
+     ```java
+     boolean caught = false;
+     do{
+     	robBank();
+     	caught = catchRobbers();
+     }while(!caught)
+     ```
+
+  4. 无限循环，直到系统shutdown，或者因为意外而退出。可以用for或者while来实现：
+
+     ```java
+     for(;;){
+     	doSomething();
+     }
+     
+     while(true){
+     	doSomething();
+     }
+     ```
+
+  5. 支持Lambda表达式的forEach遍历，List, Map, Set等等实现了Iterable接口的集合类型都支持这种写法：
+
+     ```
+     List<User> users = new ArrayList<>();
+     users.forEach(user->{
+     	System.out.println(user.getId());
+     });
+     
+     //上面的代码等价于：
+     for(int i = 0; i < users.size(); i++){
+     	var user = users.get(i);
+     	System.out.println(user.getId());
+     }
+     ```
+
+  6. 通过迭代器进行集合遍历，数组和List, Map, Set等实现了Iterable接口的集合类型都支持这种写法：
+
+     ```java
+     List<User> users = new ArrayList<>();
+     
+     for(var user : users){
+         System.out.println(user.getId());
+     }
+     
+     //另一种迭代器模式是显示地使用Iterator接口，与上面代码等价的
+     Collection<User> users = new ArrayList<>();
+     var iterator = users.iterator();
+     while(iterator.hasNext()){
+         var user = iterator.next();
+         System.out.println(user.getId());
+     }
+     ```
+
+  有时候，当循环体内检测到满足/不满足某些条件的时候，想不继续执行后续的代码，或者直接退出，要用到continue和break两个关键字：
+
+  ```java
+  int count = 0;
+  List<User> onlineUsers = new ArrayList<>();
+  
+  for(var user : users){
+  	if(!user.isOnline()) continue;	//当用户不在线时，跳过
+  	if(++count > 10) break; //只挑选前10名在线用户出来，抽奖
+  	onlineUsers.add(user);
+  }
+  ```
+
+  
 
 - 异步（Asynchronous）
 
