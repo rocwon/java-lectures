@@ -184,7 +184,7 @@ Java是一种面向对象（Object Oriented，OO）语言，要求我们使用�
   有一个使用特别频繁的引用类型，叫做String，它代表了内存中的一个以Unicode （UTF-16）编码的字符序列，就是我们常常说的“字符串”。String的初始化，看起来有点不一样：
 
   ```java
-  //初始化String时，可以不用new关键字，直接把双引号包裹起来的字符串赋给变量即可
+  //初始化String时，可以不用new关键字，直接把双引号包裹起来的字面量赋给变量即可
   String name = "John Denver";
   var mobile = "13989898989";
   
@@ -1369,7 +1369,7 @@ if(hasError){
   }
   ```
 
-  循环结构可以让代码变得逻辑更加清晰，但CPU的感受有一点不同，频繁地陷入循环，效率是要打折扣的。所以现代编译器通常会对循环进行优化，也就是把循环展开（Loop Unrolling），代码体积虽然更大了，却由此获得更高的执行效率。当然展开的过程也可以由程序员自己sh收工展开，尤其是对那些往复次数较小的循环。
+  循环结构可以让代码变得逻辑更加清晰，但CPU的感受有一点不同，频繁地陷入循环，效率是要打折扣的。所以现代编译器通常会对循环进行优化，也就是把循环展开（Loop Unrolling），代码体积虽然更大了，却由此获得更高的执行效率。当然展开的过程也可以由程序员自己手工展开，尤其是对那些往复次数较小的循环。
 
 - 异步（Asynchronous）
 
@@ -1381,7 +1381,295 @@ if(hasError){
 
   并行编程跟传统编程的区别较大，是计算机科学中一个专门的研究领域，这个讲义不打算讨论它。读者只需要明白其基本思想，以及它和并发编程的区别。
 
-### 1.2.6 代码风格
+### 1.2.6 异常处理
+
+只要是人编的程序，就不可避免会存在一些问题。有些问题，比如语法错误（对编译型的静态语言而言）在编译期就能发现，而另一些错误要等到运行时（Runtime）才会触发；有些错误开发人员可以提前预料到，而另一些错误则无法预料；有些错误需要强制处理掉，而另一些错误不需要积极处理；有些错误在现场就要被处理掉，而另一些错误需要抛给更上一层代码去处理。我们把发生在软件运行期间的导致程序执行中断的、各种意料之外的错误，称之为异常（Exception），语言必须提供一套行之有效的错误处理机制，开发出来的软件的健壮性、安全性才有保证。
+
+从异常机制的设计来看，早期的语言采用错误代码（比如C语言的全局变量 errno），传统一点的语言采用了try-catch机制，再后来一些更新一点的语言（GOLANG）采用了defer-panic-recover流程。Java采用了try-catch-finally流程，并且设计了一套完整的异常体系：
+
+```java
+public double divide(int i, int j){
+   	try{
+		return i / j;
+   	}catch(ArithmeticException e){
+   		//Do something when j equals 0
+   	}
+}
+```
+
+上面代码，当参数j = 0时，就会引发“被零除”异常。如果代码中不做处理，则会程序会Crash掉，执行过程被虚拟机中断。对于一个正儿八经的软件来说，这肯定不是开发者希望看到的结果。因此，可以引入异常处理机制来解决这个问题，将可能出错的代码行，包围在try语句之内，再将可能出现的异常用catch语句捕获到进行对应的处理。
+
+有些时候，代码里使用了外部资源，无论异常是否发生，程序结束之后都必须进行关闭、清理、释放等操作，可以用再结合finally语句使用。finally语句所包含的代码，任何情况下都会被执行。
+
+```java
+public String sendHttpRequest(String url, String content){
+	var request = new HttpRequest(url);
+	try{
+		return request.sendPost(content);
+	}catch(IOException e){
+		return null;
+	}finally{
+		try{
+        	request.close();
+        }catch(IOException e){
+            Logger.log(e);
+        }
+	}
+}
+```
+
+这段代码模拟了发送一个HTTP请求，并返回内容；如果发送失败了，就返回null值。因为HttpRequest会使用网络资源（比如Socket Handle，文件描述符等），所以最后必须显式地关闭，避免造成内存泄漏。同样，close也可能会引发异常，所以这个代码总有一点套娃的感觉，一点也不优雅。
+
+从Java 7开始，JDK提供了另一种更简洁的外部资源释放方式，叫做try-with-resources。它要求资源类必须实现AutoCloseable接口，当异常发生时，会自动调用该接口的close方法，完成资源释放。上面的代码可以改写为：
+
+```java
+public String sendHttpRequest(String url, String content){
+	try(var request = new HttpRequest(url)){
+		return request.sendPost(content);
+	}catch(IOException e){
+        return null;
+    }
+}
+```
+
+try-with-resources并不是JVM的新功能，而是一种语法糖效果，编译之后还是会转换为try-catch-finally结构的，意味着套娃结构同样存在。如果在调用和释放资源时都发生了异常怎么处理呢？ JDK提供了一种叫做“Suppressed  Exception”的办法，可以忽略指定的异常。try-with-resources语句就用这种方式，会忽略掉释放资源时引发的异常。程序员也可以根据逻辑的需要，在任何可能引发多个异常的地方，“抑制“住某个异常：
+
+```java
+Exception e1 = null;
+try{
+	//do something...
+}catch(IOException e){
+	e1 = e;
+}catch(CloneNotSupportedException e){
+	e1.addSuppressed(e);	//忽略CloneNotSupportedException
+}
+```
+
+前面我们说过，异常通常用来处理不可预料的问题，而上面的除法例子中，除数不能为0是个算术常识，是可预测的，因此采用异常机制来处理并不是很恰当，因为程序进入异常处理机制是有开销的。所以，软件开发需要遵循一个原则：**能用检查手段发现问题的地方，就避免使用异常处理**：
+
+```java
+public double divide(int i, int j){
+	if(j == 0){
+   		//Do something here
+   	}else{
+   		return i / j;
+   	}   
+}
+```
+
+有些耍小聪明的程序员，甚至用异常机制代替流程控制，是一种很不好的开发习惯。假设有这么一个需求，将一个字符串转为数字，然后返回其绝对值：
+
+```java
+public int parseNumber(String arg){
+    try{
+        return Math.abs(Integer.parseInt(arg))；
+    }catch(Exception e){
+        return -1;
+    }
+}
+```
+
+看上去代码简洁了，实际上是一种不太好的取巧手段，可以稍加修改为：
+
+```java
+public int parseNumber(String arg){
+    if(arg == null) return -1;
+    if(arg.isBlank()) return -1;
+    try{
+    	return Math.abs(Integer.parseInt(arg));
+    }catch(NumberFormatException e){
+    	return -1;
+    }
+}
+```
+
+Java的异常体系，严格按照OO的思路设计，所有异常类都派生自Throwable，从这个名字可以看出，当问题发生的时候，这个问题是可以被抛掷出去的，开发者可以用catch语句捕获到它。Java将广义的异常，被分类Error和Exception两类，整个异常树结构如下所示：
+
+- Throwable
+  - Error 开发者不代码中try-catch或throws的严重问题。换言之，不用管它，当Error出现的时候，说明应用就应该崩溃掉，别无他法
+  - Exception 所有的需要被try-catch处理的异常的超级类
+    - Checked Exceptipon 这一类异常，要求必须显式地处理（try-catch或者在方法声明的时候用throws子句抛向更上一层）。典型的有：
+      - IOException：所有IO相关的API（文件、流、网络等）都会抛出它，是导致代码结构很难看的异常之一
+      - SQLException：所有数据库操作都可能会抛出它及其子类，也是导致代码结构很难看的异常之一
+      - 更多的Checked Exception，请参考[JAVA API文档](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html)
+    - RuntimeException 代码在正常运行期间可能会出现的异常。它是Unchecked Exception，不强制开发者try-catch或者方法声明时throws。典型的有：
+      - ClassCastException 强制类型转换时，如果类型不匹配，会引发此异常
+      - IndexOutOfBoundsException：访问数组对象时，下标越界，会引发此异常 
+      - 更多的RuntimeExceptiond的子类，请参考[JAVA API文档](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/RuntimeException.html)
+
+再直观一点用代码解释一下Checked Exception的处理方式：
+
+```java
+//IOException必须要现场处理。大体上，有三种处理方式。
+
+//处理方式一：约定式。用返回null表示发生了IO异常，什么也没读到。这种方式需要在API文档里详细说明，让调用者理解这种约定
+public static byte[] read(Path file) {
+	try {
+		return Files.readAllBytes(file);
+	}catch(IOException e) {
+		return null; 
+	}
+}
+//处理方式二：不管它，甩给方法的调用者去处理
+public static byte[] read(Path file) throws IOException {
+	return Files.readAllBytes(file);
+}
+
+//处理方式三：将它转换为应用自定义的异常体系重新抛出去，给调用者处理
+public static byte[] read(Path file) {
+	try {
+		return Files.readAllBytes(file);
+	}catch(IOException e) {
+		throw MyApplicationException(e);
+	}
+}
+```
+
+如果是Unchecked Exception，应对方式有四种：
+
+```
+//方式一：不处理。假设因为开发者大意，此方法可能抛出ArithmeticException这个运行时异常。如果此处不处理，调用者也不知道实现者是否处理过，就会很危险。
+public double divide(int m, int n){
+	return m / n;
+}
+
+//方式二：约定式。用try-catch捕获，当除数为0时，返回正无限大。这种方式需要在API文档里详细说明，让调用者理解这种约定。
+public double divide(int m, int n){
+	try{
+		return m / n;
+	}catch(ArithmeticException e){
+		return Double.POSITIVE_INFINITY;
+	}
+}
+
+//方式三：将它转换为应用自定义的异常体系重新抛出去，给调用者处理。
+public double divide(int m, int n){
+	try{
+		return m / n;
+	}catch(ArithmeticException e){
+		throw MyApplicationException(e);
+	}
+}
+
+//方式四：主动预防。其实，大多数的RuntimeException是可以预见的。通过主动检查的方式，可以预防它发生。
+public double divide(int m, int n){
+	return n != 0 ? m / n : Double.POSITIVE_INFINITY;
+}
+
+//同样的道理，在做类型转换时，也可采用主动预防的方式，防止ClassCastException的发生：
+public void foo(Object arg){
+	if(arg instanceof User){
+		User user = (User)arg;
+		...		
+	}
+}
+```
+
+如果一个方法抛出了一个Unchecked Exception，该方法的调用栈比较深，并且从头到尾都人去主动处理它，最终这个异常将会被传递到最后一个调用者这里，这个机制叫做异常传播（Exception Propagation）。请看下面的例子：
+
+```java
+public double divide(int m, int n){
+	return m / n;
+}
+
+public double average(int apples, int persons){
+	return divide(apples, persons);
+}
+
+public static void main(String[] args){
+	var avg = average(10, 0);
+}
+```
+
+运行上面的代码，会得到如下错误信息：
+
+```
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at cn.techarts.hi.Demo.divide(Demo.java:5)
+	at cn.techarts.hi.Demo.average(Demo.java:9)
+	at cn.techarts.hi.Demo.main(Demo.java:13)
+```
+
+可见，异常是被传播到main方法中被抛出的，顺着这个stack网上找，最终在divide方法中被最终定位到。由于Java的面向对象特性，很多Framework在设计时，对象体系的层级、方法的调用栈都比较深，Debug的时候必须跟着Exception Stack Trace信息去顺藤摸瓜。
+
+异常处理的最后一个讨论话题是：自定义异常体系。一个业务稍微复杂些的软件项目，就可能会发生各种业务层面的处理错误。业务层面的错误很难用Java标准异常去清晰描述，因此有必要定义项目自己的异常体系。一般来说，如果不是特别的理由，自定义异常都从RuntimeException派生，是一个比较好的编程实践。举个例子，我们的项目里需要频繁打开各种各样的文件：
+
+```
+public FileChannel openDataFile(String path){
+	var p = Path.of(path);
+	try{
+		return FileChannel.open(p);
+	}catch(IOException e){
+		throw new DataFileException(e, "Failed to open the data file: " + file);
+	}
+}
+
+public void openIndexFile(String path){
+	var p = Path.of(path);
+	try{
+		var file = FileChannel.open(p);
+	// Next steps...
+	}catch(IOException e){
+		throw new IndexFileException(e, "Failed to open index file: " + file);
+	}
+}
+
+public void openConfigFile(String path){
+	var p = Path.of(path);
+	try{
+		var file = FileChannel.open(p);
+	// Next steps...
+	}catch(IOException e){
+		throw new ConfigFileException(e, "Failed to open the config file: " + file);
+	}
+}
+
+public void writeDataFile(String path, byte[] data){
+	var file = openDataFile(path);
+	try{
+		file.write(data);
+	}catch(IOException e){
+		throw new DataFileException(e, "Failed to write data into file: " + path);
+	}
+}
+```
+
+上面四个方法，分别操作了三种文件类型，对应不同的后续处理。FileChannel.open/write都抛出IOException。假若不管什么情况都直接把IOException甩出去，是一种很不友好的做法。因此，为了向调用者明确传达设计意图和业务特征，定义了一套自己的异常体系：
+
+```java
+public class MyApplicationException extends RuntimeException{
+	
+}
+
+public class FileException extends MyApplicationException{
+	
+}
+
+public class DataFileException extends FileException{
+	public DataFileException(IOException cause, String message){
+		super(message, cause);
+	}
+	//...
+}
+
+public class IndexFileException extends FileException{
+	public IndexFileException(IOException cause, String message){
+		super(message, cause);
+	}
+	//...
+}
+
+public class ConfigFileException extends FileException{
+	public ConfigFileException(IOException cause, String message){
+		super(message, cause);
+	}
+	//...
+}
+```
+
+MyApplicationException作为自定义异常的基类，继承自RuntimeException。针对三种不同的文件l类型，又派生出了三个FileException的子类。当然实际项目中的问题远比这个例子要复杂，需要花一些时间来能体现出业务特征的异常体系。开发者在使用面向对象语言时候，容易陷入一个过度设计（Over Design）的误区，将继承的层级弄得特别深，显得很有设计感。过度的设计会带来理解、维护方面的困难，也会有性能方面的损失，所以需要需求平衡。
+
+### 1.2.7 代码风格
 
 有句老生常谈的编程箴言：代码是写给人看的。言下之意是要写得简洁易懂，对人类很友好。笔者认为好的代码还应该对机器友好一些，也就是说，既要兼顾简洁易懂，又要兼顾执行效率。有时候这两者是冲突的，为了效率必然会用一些“奇技淫巧”。但如果全部程序都充满了奇技淫巧，比如在应用型的软件里到处嵌入大段的汇编代码来提升效率，就没必要了。
 
