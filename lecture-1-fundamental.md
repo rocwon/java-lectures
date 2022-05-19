@@ -1594,7 +1594,7 @@ Exception in thread "main" java.lang.ArithmeticException: / by zero
 
 异常处理的最后一个讨论话题是：自定义异常体系。一个业务稍微复杂些的软件项目，就可能会发生各种业务层面的处理错误。业务层面的错误很难用Java标准异常去清晰描述，因此有必要定义项目自己的异常体系。一般来说，如果不是特别的理由，自定义异常都从RuntimeException派生，是一个比较好的编程实践。举个例子，我们的项目里需要频繁打开各种各样的文件：
 
-```
+```java
 public FileChannel openDataFile(String path){
 	var p = Path.of(path);
 	try{
