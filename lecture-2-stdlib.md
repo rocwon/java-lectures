@@ -224,6 +224,24 @@ UTF-8: E5 A4 A9, 对应的十进制数是：122825，对应的二进制形式为
 
 ### 2.1.2 深入String类
 
+String类位于包java.lang之下，与基本类型的Wrapper属于同一个层次，无须显式引入即可使用。这从一个侧面说明它的重要性，如果一种语言没有内置的好用字符串处理工具，是一种缺陷。C++程序员们就面临这个困扰，标准库的std::string类的文本处理能力不够，各种框架的开发者就只好反复造轮子，实现自己的string，这不一定是出于性能考量，更主要是功能不满足。
+
+Java的String类，出于安全和效率的考量，用了final修饰，不能被继承，用户无法对它的行为做任何行为：
+
+```java
+public final class String implements java.io.Serializable, Comparable<String>, CharSequence
+```
+
+本质上来讲，String是一个字符序列，是由基本类型char构成的复合类型。在很多语言中，内部都是维护了一个char数组，所有的操作都是针对这个buffer中字符进行的。我们看Java String类的第一行代码：
+
+```
+private final byte[] value;
+```
+
+数组的特点是，初始化时必须指定长度，而且其长度在初始化之后不可改变；再加上用了final修饰符，就意味着它在运行期被当作一个常量对待，创建之后就不可改变了。
+
+
+
 ## 2.2 集合 / 容器
 
 ## 2.3  文件和I/O
