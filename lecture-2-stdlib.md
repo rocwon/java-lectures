@@ -55,54 +55,7 @@ GB2312是双字节编码，它采用了一种叫做“区位码”的编码方�
 
 那么，128 - 33 - 1 = 94了。
 
-同样是双字节，容量却比2^15 = 32768 小了很多。但是区位码方案的好处在于可以分组，便于检索定位。假设有这么一个需求：为了简化输入，经常会用到汉字的拼音首字母作为缩写，例如：郭靖 -> GJ，计算机 -> JSJ，世界人民大团结万岁 - > SJRMDTJWS，除了导入一个字典之外，还有什么简便的方法可以实现呢？请看这个class，利用了区位码里，常用汉字按拼音字母排序的规则：
-
-```java
-public class Pinyin {
-	private final static int[] SP_BOUNDARIES = { 1601, 1637, 1833, 2078, 2274,
-			2302, 2433, 2594, 2787, 3106, 3212, 3472, 3635, 3722, 3730, 3858,
-			4027, 4086, 4390, 4558, 4684, 4925, 5249, 5590 };
-	private final static String[] FIRST_LETTERS = { "A", "B", "C", "D", "E",
-			"F", "G", "H", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-			"T", "W", "X", "Y", "Z" };
-
-	public static String getFirstLetters(String chinese) {
-		if (chinese == null) return "";
-		var result = new StringBuilder();
-		char[] chars = chinese.toCharArray();
-		for(char ch : chars) {
-			result.append(firstLetters(String.valueOf(ch)));
-		}
-		return result.toString();
-	}
-
- 	private static String firstLetters(String chinese) {
-		var result = convertCharset(chinese, "GB2312", "ISO8859-1");
-		if (result.length() > 1) { //It's Chinese chars
-			int sectorCode = (int)result.charAt(0) - 160; //Section Code
-			int positionCode = (int)result.charAt(1) - 160; //Position Code
-			int secPosCode = sectorCode * 100 + positionCode; //Sec-Pos Code
-			if (secPosCode > 1600 && secPosCode < 5590) {
-				for (int i = 0; i < 23; i++) {
-					if(secPosCode < SP_BOUNDARIES[i]) continue;
-					if(secPosCode >= SP_BOUNDARIES[i + 1]) continue;
-					result = FIRST_LETTERS[i]; break;
-				}
-			}else{
-				result = convertCharset(chinese, "ISO8859-1", "GB2312");
-				result = "".equals(result) ? "" : result.substring(0, 1);
-			}
-		}
-		return result;
-	}
- 	
-	private static String convertCharset(String source, String sourceCharset,String destCharset) {
-		try {
-			return new String(source.getBytes(sourceCharset), destCharset);
-		} catch (UnsupportedEncodingException ex) { return "";}
-	}
-}
-```
+同样是双字节，容量却比2^15 = 32768 小了很多。但是区位码方案的好处在于可以分组，便于检索定位。假设有这么一个需求：为了简化输入，经常会用到汉字的拼音首字母作为缩写，例如：郭靖 -> GJ，计算机 -> JSJ，世界人民大团结万岁 - > SJRMDTJWS。请大家思考一下，除了导入一个字典之外，还有什么简便的方法可以实现这个功能呢？
 
 请注意，GB2312和ASCII码是不兼容的。即便同样的符号，GB2312采用了16位重新编码之后，屏幕显示时占双倍像素宽度，就是我们通常所说的“全角字符”（Full-width），而在ASCII码里占的标准像素宽度的叫做“半角字符”（Half-Width）。在中文环境下编程偶尔会出这样的错误，比如分号、括号等，输入了全角字符。如果听信一些所谓的“编程高手”的话，用文本编辑器而不是现代的IDE，一个简单的错误要看瞎眼睛。
 
